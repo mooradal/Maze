@@ -1,27 +1,38 @@
-var ctx = document.getElementById("canvas").getContext("2d");
-var cols = 20
-var w = 400/cols
-var grid = []
-var stack = []
-for (var e = 0;e < 400;e+=w) {
-    for (var i = 0;i < 400;i+=w) {
+var canvas = document.getElementById("canvas");
+width = canvas.width
+var ctx = canvas.getContext("2d");
+var cols = 20;
+var w = width/cols;
+var Done = false;
+var keys = {right:false,left:false,up:false,down:false}
+var grid = [];
+var stack = [];
+var velocity = {x:0,y:0}
+for (var e = 0;e < width;e+=w) {
+    for (var i = 0;i < width;i+=w) {
         grid.push(new Cell(i,e))
     }
 }
+
+player = {x:0,y:0,size:10}
 
 var current = grid[0];
 update();
 
 function update() {
     window.requestAnimationFrame(update)
-    ctx.clearRect(0,0,400,400)
+    ctx.clearRect(0,0,width,width)
     ctx.fillStyle = "#121212"
-    ctx.fillRect(0,0,400,400)
+    ctx.fillRect(0,0,width,width)
     drawCell();
+    movement()
+    player.x += velocity.x
+    player.y += velocity.y
+    // player.x = Math.floor(player.x)
+    // player.y = Math.floor(velocity.y)
+    velocity.x *= 0.9
+    velocity.y *= 0.9
     current.visited = true
-    // if(stack.length != 0) {
-    //     current.hightlight()
-    // }
     next = current.checkNeighbors()
     if (next) {
     stack.push(current)
@@ -29,6 +40,9 @@ function update() {
     current = next
     } else if (stack.length > 0) {
         current = stack.pop();
+    } else {
+        ctx.fillStyle = "#ff0000"
+        ctx.fillRect(player.x,player.y,player.size,player.size)
     }
 }
 
@@ -129,3 +143,51 @@ function removeWalls(cell1,cell2) {
         cell2.walls[0] = false
     }
 }
+
+document.onkeydown = function(e) {
+    if (e.keyCode == 38) {
+        keys.up = true;
+    } if (e.keyCode == 40) {
+        keys.down = true;
+    } if (e.keyCode == 37) {
+        keys.left = true;
+    } if (e.keyCode == 39) {
+        keys.right = true;
+    } 
+};
+
+
+document.onkeyup =  function(e) {
+    if (e.keyCode == 38) {
+        keys.up = false;
+    } if (e.keyCode == 40) {
+        keys.down = false;
+    } if (e.keyCode == 37) {
+        keys.left = false;
+    } if (e.keyCode == 39) {
+        keys.right = false;
+    } 
+}
+
+function movement() {
+    if (keys.up) {
+        velocity.y -= 0.8
+    } if (keys.down) {
+        velocity.y += 0.8
+    } if (keys.left) {
+        velocity.x -= 0.8
+    } if (keys.right) {
+        velocity.x += 0.8
+    } 
+}
+
+// function collision() {
+//     for (var i = 0;i < grid.length;i++) {
+//         if (grid[i].walls[1] &&  grid[i].y <= player.y <= grid[i].y+w && player.x+player.size == grid[i].x+w) {
+//             velocity.x = 0
+//             right = false
+//             player.x = (grid[i].x+w)-player.size
+//             console.log("Touched it")
+//         }
+//     }
+// }
